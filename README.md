@@ -27,7 +27,6 @@ Not done, or limited:
 - A request can only move forward (Pending, In Progress, Resolved). It cannot be reopened.
 - The users list shows the 200 most recent accounts and has no search.
 - The API is meant to run as a single instance.
-- On free hosting plans the API sleeps when idle, so the first request after a pause can take a while.
 
 ## Requirements
 
@@ -62,7 +61,7 @@ DIRECT_URL="postgresql://postgres:postgres@localhost:5432/service_requests"
 JWT_SECRET="<a long random string>"
 ADMIN_EMAIL="admin@murangacounty.example"
 ADMIN_ID_NUMBER="00000001"
-ADMIN_PASSWORD="<choose a password>"
+ADMIN_PASSWORD="<choose a password>" #currently Admin@123
 ```
 
 Generate a secret with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
