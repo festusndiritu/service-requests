@@ -61,7 +61,7 @@ DIRECT_URL="postgresql://postgres:postgres@localhost:5432/service_requests"
 JWT_SECRET="<a long random string>"
 ADMIN_EMAIL="admin@murangacounty.example"
 ADMIN_ID_NUMBER="00000001"
-ADMIN_PASSWORD="<choose a password>" #currently Admin@123
+ADMIN_PASSWORD="@Admin@123"
 ```
 
 Generate a secret with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
