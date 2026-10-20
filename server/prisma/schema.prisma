@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CITIZEN
+  ADMIN
+}
+
+enum Category {
+  WATER_SUPPLY
+  STREET_LIGHTING
+  GARBAGE_COLLECTION
+  ROAD_MAINTENANCE
+  SEWERAGE_DRAINAGE
+  PUBLIC_HEALTH
+  PUBLIC_SAFETY
+  MARKETS_TRADING
+  ENVIRONMENT_PARKS
+  OTHER
+}
+
+enum Status {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+}
+
+enum NotificationType {
+  REQUEST_SUBMITTED
+  STATUS_CHANGED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String
+  email        String   @unique
+  idNumber     String   @unique
+  phone        String
+  passwordHash String
+  role         Role     @default(CITIZEN)
+  createdAt    DateTime @default(now())
+  // Sessions issued before this moment are rejected (set when the password is reset)
+  passwordChangedAt DateTime?
+
+  requests       ServiceRequest[]
+  updates        StatusUpdate[]
+  notifications  Notification[]
+  passwordResets PasswordReset[]
+}
+
+model ServiceRequest {
+  id          String   @id @default(uuid())
+  number      Int      @unique @default(autoincrement())
+  category    Category
+  location    String
+  description String
+  imageKeys   String[]  @default([])
+  status      Status   @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId  String
+  user    User           @relation(fields: [userId], references: [id])
+  history StatusUpdate[]
+  notifications Notification[]
+
+  @@index([userId, createdAt])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model StatusUpdate {
+  id          String   @id @default(uuid())
+  status      Status
+  note        String?
+  createdAt   DateTime @default(now())
+
+  requestId   String
+  request     ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  createdById String
+  createdBy   User           @relation(fields: [createdById], references: [id])
+
+  @@index([requestId])
+  @@index([status, createdAt])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requestId String?
+  request   ServiceRequest?  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+/// One SMS one-time code for resetting a password. Only a keyed hash of the code is stored.
+model PasswordReset {
+  id        String    @id @default(uuid())
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
